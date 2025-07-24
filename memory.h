@@ -2,6 +2,7 @@
 #define clox_memory_h
 
 #include "common.h"
+#include "object.h"
 
 // here "\" means just continuation of define
 // what #define does is it replaces whereever it sees GROW_CAP(capacity) with that expression
@@ -19,13 +20,19 @@
       (type*)reallocate(NULL, 0, sizeof(type) * (count))
     
 void* reallocate(void* pointer,size_t oldsize,size_t newsize);
+void freeObjects();
 
 
 
 
 #define FREE_ARRAY(type,pointer,oldcount)\
-    reallocate(pointer,sizeof(type)*oldcount,0);
+    reallocate(pointer,sizeof(type)*oldcount,0)
+
+#define FREE(type,pointer)  reallocate(pointer, sizeof(type), 0)
     
+
+
+
 
 
 
