@@ -2,8 +2,12 @@
 #include "vm.h"
 #include "compiler.h"
 #include "debug.h"
+#include "memory.h"
+#include "object.h"
+
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 
 VM vm;
@@ -58,6 +62,22 @@ static bool isFalsey(Value value){
     return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 };
 
+void concatenate(){
+    ObjString* b = AS_STRING(pop());
+    ObjString* a = AS_STRING(pop());
+
+    int length = a->length + b->length;
+    char* new = ALLOCATE(char, length + 1);
+    memcpy(new, a->chars, a->length);
+    memcpy(new + a->length, b->chars, b->length);
+    new[length] = '\0';
+    
+    ObjString* result = takeString(new, length);
+    
+    push(OBJ_VAL(result));
+
+}
+
 static InterpretResult run()
 {
     #define READ_BYTE() (*vm.ip++)
@@ -109,15 +129,24 @@ static InterpretResult run()
             case OP_GREATER: BINARY_OP(BOOL_VAL, >); break;
             case OP_LESS: BINARY_OP(BOOL_VAL, <); break;
 
-            case OP_ADD :
-                printf(">> Stack before OP_ADD: ");
-                for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
-                    printValue(*slot);
-                    printf(" ");
+            case OP_ADD :{
+                if(IS_STRING(peek(0)) && IS_STRING(peek(1))){
+                    concatenate();
                 }
-                printf("\n");
-                BINARY_OP(NUMBER_VAL, +);
+                else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))){
+                    double b = AS_NUMBER(pop());
+                    double a = AS_NUMBER(pop());
+                    push(NUMBER_VAL(a + b));
+                }
+                else{
+                    runtimeError("Operands must be two numbers or two strings");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
                 break;
+
+            } 
+
+                
             case OP_SUBTRACT : BINARY_OP(NUMBER_VAL, -); break;
             case OP_MULTIPLY : BINARY_OP(NUMBER_VAL, *); break;
             case OP_DIVIDE : BINARY_OP(NUMBER_VAL, /); break;
