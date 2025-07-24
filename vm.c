@@ -20,6 +20,7 @@ static void resetStack()
 void initVM()
 {
     resetStack();
+    vm.objects = NULL;
     
 }
 
@@ -34,11 +35,11 @@ static void runtimeError(const char* format, ...){
     int line = vm.chunk->lines[instruction];
     fprintf(stderr,"[line %d] in script\n",line);
     resetStack();
-};
+}
 
 void freeVM()
 {
-    
+    freeObjects();
 }
 
 void push(Value value)
@@ -60,7 +61,7 @@ static Value peek(int distance){
 static bool isFalsey(Value value){
     
     return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
-};
+}
 
 void concatenate(){
     ObjString* b = AS_STRING(pop());
