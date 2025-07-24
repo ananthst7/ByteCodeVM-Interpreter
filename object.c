@@ -6,7 +6,7 @@
 #include "value.h"
 #include "vm.h"
 
-#define ALLOCATE_OBJ(type, objectType) \ 
+#define ALLOCATE_OBJ(type, objectType)\
     (type*)allocateObject(sizeof(type),objectType)
 
 static Obj* allocateObject(size_t size, ObjType type){
