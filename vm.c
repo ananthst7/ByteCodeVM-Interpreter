@@ -188,6 +188,8 @@ InterpretResult interpret(const char* source) {
     vm.chunk = &chunk;
     vm.ip = vm.chunk->code;
     InterpretResult result = run();
+    freeVM();
     freeChunk(&chunk);
+    
     return result; // Return run() result
 }
