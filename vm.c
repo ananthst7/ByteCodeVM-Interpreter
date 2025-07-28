@@ -179,6 +179,7 @@ static InterpretResult run()
 
 
 InterpretResult interpret(const char* source) {
+    
     Chunk chunk;
     initChunk(&chunk);
     if (!compile(source, &chunk)) {
@@ -188,7 +189,7 @@ InterpretResult interpret(const char* source) {
     vm.chunk = &chunk;
     vm.ip = vm.chunk->code;
     InterpretResult result = run();
-    freeVM();
+    
     freeChunk(&chunk);
     
     return result; // Return run() result
