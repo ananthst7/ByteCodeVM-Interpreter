@@ -23,6 +23,7 @@ typedef enum
     OP_DIVIDE,
     OP_NOT,
     OP_NEGATE,      //to negate a given number
+    OP_PRINT,
     OP_RETURN,
 }OpCode;
 
