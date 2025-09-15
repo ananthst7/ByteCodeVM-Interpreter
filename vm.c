@@ -8,15 +8,22 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 
 VM vm;
+
+static Value clockNative(int argCount, Value* args) {
+  return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
+}
 
 static void resetStack()
 {
     vm.stackTop = vm.stack;
     vm.frameCount = 0;
 }
+
+static void defineNative(const char* name, NativeFn function);
 
 void initVM()
 {
@@ -25,6 +32,7 @@ void initVM()
     initTable(&vm.strings);
     initTable(&vm.globals);
     
+    defineNative("clock", clockNative);
 }
 
 static void runtimeError(const char* format, ...){
@@ -38,6 +46,10 @@ static void runtimeError(const char* format, ...){
         CallFrame* frame = &vm.frames[i];
         ObjFunction* function = frame->function;
         size_t instruction = frame->ip - function->chunk.code - 1;
+        if (function->name == NULL && i == 0) {
+            continue;
+        }
+
         fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
         if(function->name == NULL){
             fprintf(stderr,"script\n");
@@ -47,6 +59,17 @@ static void runtimeError(const char* format, ...){
         }
     }
     resetStack();
+}
+
+Value pop();
+void push(Value value);
+
+static void defineNative(const char* name, NativeFn function) {
+    push(OBJ_VAL(copyString(name, (int)strlen(name))));
+    push(OBJ_VAL(newNative(function)));
+    tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
+    pop();
+    pop();
 }
 
 void freeVM()
@@ -95,6 +118,14 @@ static bool callValue(Value callee, int argCount){
         switch(OBJ_TYPE(callee)){
             case OBJ_FUNCTION:
                 return call(AS_FUNCTION(callee), argCount);
+
+            case OBJ_NATIVE: {
+                NativeFn native = AS_NATIVE(callee);
+                Value result = native(argCount, vm.stackTop - argCount);
+                vm.stackTop -= argCount + 1;
+                push(result);
+                return true;
+            }
             default:
                 break; //non callable object type
         }
