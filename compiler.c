@@ -647,21 +647,19 @@ static void printStatement(){
        
 }
 
-static void returnStatement(){
-    if(current->type == TYPE_SCRIPT){
-        error("Can't return from top-level code");
-    }
+static void returnStatement() {
+    if (current->type == TYPE_SCRIPT) {
+    error("Can't return from top-level code.");
+  }
 
-    if(match(TOKEN_SEMICOLON)){
-        emitReturn();
-    }    
-    else{
-        expression();
-        consume(TOKEN_SEMICOLON, "Expect ; after return value.");
-        emitByte(OP_RETURN);
-    }
+  if (match(TOKEN_SEMICOLON)) {
+    emitReturn();
+  } else {
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
+    emitByte(OP_RETURN);
+  }
 }
-
 static void whileStatement(){
     int loopStart = currentChunk()->count;
     consume(TOKEN_LEFT_PAREN, "expected '(' after 'while'");
